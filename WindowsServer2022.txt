@@ -1,0 +1,51 @@
+# Auteur: [Jouw naam]
+
+# Laden van de algemene configuratiemodule
+Import-Module Z:\scripting3\algemeenxxx.psm1
+
+# Laden van de module voor het bijhouden van de wijzigingen
+Import-Module Z:\scripting3\logmodule.psm1
+
+# Functie om de basisconfiguratie voor Windows Server 2022 uit te voeren
+<#
+.SYNOPSIS
+Voert de basisconfiguratie uit voor Windows Server 2022, inclusief het instellen van servernaam, IP-adressen, default gateway en DNS.
+#>
+function Do-BasisconfiguratieWindowsServer2022 {
+    # Vraag de gebruiker om de servernaam in te voeren
+    $ServerName = Read-Host "Voer de nieuwe naam van de server in:"
+
+    # Stel de servernaam in
+    Rename-Computer -NewName $ServerName -Force
+
+    # Log de wijziging
+    Log-Change "Servernaam gewijzigd naar $ServerName"
+
+    # Vraag de gebruiker om de IP-configuratie in te voeren
+    $IPAddress = Read-Host "Voer het IP-adres in:"
+    $SubnetMask = Read-Host "Voer het subnetmasker in:"
+    $DefaultGateway = Read-Host "Voer het IP-adres van de default gateway in:"
+    $DNS = Read-Host "Voer het IP-adres van de DNS-server in:"
+
+    # Stel de IP-configuratie in
+    $NetworkAdapter = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+    $NetworkAdapter | New-NetIPAddress -IPAddress $IPAddress -PrefixLength $SubnetMask
+    $NetworkAdapter | Set-NetIPInterface -InterfaceMetric 10
+    Set-DnsClientServerAddress -InterfaceAlias $NetworkAdapter.Name -ServerAddresses $DNS
+
+    # Stel de default gateway in
+    Set-NetIPInterface -InterfaceAlias $NetworkAdapter.Name -DefaultGateway $DefaultGateway
+
+    # Log de wijzigingen
+    Log-Change "IP-adres gewijzigd naar $IPAddress"
+    Log-Change "Subnetmasker gewijzigd naar $SubnetMask"
+    Log-Change "Default gateway gewijzigd naar $DefaultGateway"
+    Log-Change "DNS-server gewijzigd naar $DNS"
+
+    # Herstart de server
+    Restart-Computer -Force
+}
+
+# Voer de basisconfiguratie uit voor Windows Server 2022
+Do-BasisconfiguratieWindowsServer2022
+
