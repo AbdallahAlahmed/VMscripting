@@ -20,10 +20,10 @@ function Show-Menu {
 .SYNOPSIS
 Voert de basisconfiguratie van een Windows apparaat uit.
 #>
-function Perform-Basisconfiguratie {
+function Invoke-Basisconfiguratie {
     # Roep de functie uit algemene configuratiemodule aan
-    Do-Basisconfiguratie
-    Log-Change "Basisconfiguratie van Windows device uitgevoerd."
+    Set-Basisconfiguratie
+    Write-Log "Basisconfiguratie van Windows device uitgevoerd."
     Read-Host "Druk op Enter om terug te keren naar het menu."
 }
 
@@ -32,15 +32,15 @@ function Perform-Basisconfiguratie {
 .SYNOPSIS
 Voert de configuratie van domeininstellingen uit.
 #>
-function Perform-DomainSettings {
+function Invoke-DomainSettings {
     # Roep de functie uit domain settings configuratiemodule aan
-    Do-DomainSettings
-    Log-Change "Configuratie van domain settings uitgevoerd."
+    Set-DomainSettings
+    Write-Log "Configuratie van domain settings uitgevoerd."
     Read-Host "Druk op Enter om terug te keren naar het menu."
 }
 
 # Functie om wijzigingen te loggen
-function Log-Change {
+function Write-Log {
     param(
         [string]$Change
     )
@@ -54,8 +54,8 @@ while ($true) {
     Show-Menu
     $choice = Read-Host "Maak een keuze"
     switch ($choice) {
-        '1' { Perform-Basisconfiguratie }
-        '2' { Perform-DomainSettings }
+        '1' { Invoke-Basisconfiguratie }
+        '2' { Invoke-DomainSettings }
         'Q' { break }
         default { Write-Host "Ongeldige keuze. Probeer opnieuw." }
     }
