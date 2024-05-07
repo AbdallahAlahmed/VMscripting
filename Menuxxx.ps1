@@ -1,62 +1,53 @@
 # Auteur: Abdallah Alahmed
 
 # Laden van de algemene configuratiemodule
-Import-Module .\algemeenxxx.psm1
+Import-Module Z:\scripting3\algemeenxxx.psm1
 
-# Laden van de domain settings configuratiemodule
-Import-Module .\domainsettingsxxx.psm1
+# Laden van de module voor domain settings
+Import-Module Z:\scripting3\domainsettingsxxx.psm1
 
-# Definieer het menu
+# Laden van de module voor het bijhouden van de wijzigingen
+Import-Module Z:\scripting3\logmodule.psm1
+
+# Functie om de basisconfiguratie voor Windows Server 2022 uit te voeren
+<#
+.SYNOPSIS
+Voert de basisconfiguratie uit voor Windows Server 2022, inclusief het instellen van servernaam, IP-adressen, default gateway en DNS.
+#>
+function Invoke-BasisconfiguratieWindowsServer2022 {
+    # Implementeer de functionaliteit voor basisconfiguratie van Windows Server 2022
+}
+
+# Functie om de basisconfiguratie voor Windows 10 Pro/Education uit te voeren
+<#
+.SYNOPSIS
+Voert de basisconfiguratie uit voor Windows 10 Pro/Education, inclusief het instellen van computernaam, IP-adressen, default gateway en DNS.
+#>
+function Invoke-BasisconfiguratieWindows10 {
+    # Implementeer de functionaliteit voor basisconfiguratie van Windows 10 Pro/Education
+}
+
+# Functie voor het tonen van het menu
 function Show-Menu {
-    Clear-Host
-    Write-Host "=== Menu ==="
-    Write-Host "1. Basisconfiguratie van Windows device"
-    Write-Host "2. Configuratie van domain settings"
-    Write-Host "Q. Afsluiten"
-}
+    Write-Host "1. Basisconfiguratie Windows Server 2022"
+    Write-Host "2. Basisconfiguratie Windows 10 Pro/Education"
+    $choice = Read-Host "Maak een keuze (1/2):"
 
-# Functie voor basisconfiguratie van Windows device
-<#
-.SYNOPSIS
-Voert de basisconfiguratie van een Windows apparaat uit.
-#>
-function Invoke-Basisconfiguratie {
-    # Roep de functie uit algemene configuratiemodule aan
-    Set-Basisconfiguratie
-    Write-Log "Basisconfiguratie van Windows device uitgevoerd."
-    Read-Host "Druk op Enter om terug te keren naar het menu."
-}
-
-# Functie voor configuratie van domain settings
-<#
-.SYNOPSIS
-Voert de configuratie van domeininstellingen uit.
-#>
-function Invoke-DomainSettings {
-    # Roep de functie uit domain settings configuratiemodule aan
-    Set-DomainSettings
-    Write-Log "Configuratie van domain settings uitgevoerd."
-    Read-Host "Druk op Enter om terug te keren naar het menu."
-}
-
-# Functie om wijzigingen te loggen
-function Write-Log {
-    param(
-        [string]$Change
-    )
-    $LogFilePath = "Z:\scripting\logs\InstallatieLogxxx.txt"
-    $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Add-Content -Path $LogFilePath -Value "$Timestamp - $Change"
-}
-
-# Hoofdprogramma
-while ($true) {
-    Show-Menu
-    $choice = Read-Host "Maak een keuze"
     switch ($choice) {
-        '1' { Invoke-Basisconfiguratie }
-        '2' { Invoke-DomainSettings }
-        'Q' { break }
-        default { Write-Host "Ongeldige keuze. Probeer opnieuw." }
+        '1' {
+            Invoke-BasisconfiguratieWindowsServer2022
+        }
+        '2' {
+            Invoke-BasisconfiguratieWindows10
+        }
+        default {
+            Write-Host "Ongeldige keuze. Probeer opnieuw."
+            Show-Menu
+        }
     }
 }
+
+# Main script
+
+# Toon het menu
+Show-Menu
