@@ -38,7 +38,27 @@ function Install-DomainController {
 # Installatie van de domeincontroller
 Install-DomainController
 
+# Functie voor het aanmaken van OUs
+function New-OUs {
+    $OUs = Get-Content .\ou.txt
 
+    foreach ($OU in $OUs) {
+        # Controleren of de OU al bestaat
+        $ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$OU'" -ErrorAction SilentlyContinue
+
+        if ($null -eq $ouExists) {
+            # De OU bestaat nog niet, maak deze aan
+            New-ADOrganizationalUnit -Name $OU
+            Add-Content -Path "log.txt" -Value "OU $OU is succesvol aangemaakt."
+        }
+        else {
+            # De OU bestaat al, geef een melding
+            Write-Host "OU $OU bestaat al."
+        }
+    }
+}
+# Aanmaken van OUs
+Create-OUs
 # Functie om wijzigingen te loggen
 function Write-Log {
     param(
@@ -50,3 +70,6 @@ function Write-Log {
 }
 
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function Install-DomainController
+
+Export-ModuleMember .\domainsettingsxxx.psm -Function New-OUs
+Write-Log "Script gestart op $(Get-Date)"
