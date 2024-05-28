@@ -135,6 +135,42 @@ function New-DomainUsers {
 New-DomainUsers
 
 
+# Functie voor het toevoegen van gebruikers aan beveiligingsgroepen
+function Add-UsersToGroups {
+    $UserGroups = Import-Csv .\usergroups.csv
+
+    foreach ($UserGroup in $UserGroups) {
+        $UserName = $UserGroup.UserName
+        $GroupName = $UserGroup.GroupName
+
+        # Controleren of de beveiligingsgroep bestaat
+        $groupExists = Get-ADGroup -Filter "Name -eq '$GroupName'" -ErrorAction SilentlyContinue
+
+        if ($null -eq $groupExists) {
+            Write-Host "Beveiligingsgroep $GroupName bestaat niet."
+            Add-Content -Path "log.txt" -Value "Error: Beveiligingsgroep $GroupName bestaat niet."
+            continue
+        }
+
+        # Controleren of de gebruiker bestaat
+        $userExists = Get-ADUser -Filter "SamAccountName -eq '$UserName'" -ErrorAction SilentlyContinue
+
+        if ($null -eq $userExists) {
+            Write-Host "Gebruiker $UserName bestaat niet."
+            Add-Content -Path "log.txt" -Value "Error: Gebruiker $UserName bestaat niet."
+            continue
+        }
+
+        # Gebruiker toevoegen aan de groep
+        Add-ADGroupMember -Identity $GroupName -Members $UserName
+        Add-Content -Path "log.txt" -Value "Gebruiker $UserName is toegevoegd aan de beveiligingsgroep $GroupName."
+    }
+}
+
+# Aanroepen van de functie om gebruikers aan beveiligingsgroepen toe te voegen
+Add-UsersToGroups
+
+
 # Functie om wijzigingen te loggen
 function Write-Log {
     param(
@@ -150,5 +186,7 @@ Export-ModuleMember .\domainsettingsxxx.psm1 -Function Install-DomainController
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-OUs
 
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-SecurityGroups
+Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-DomainUsers
+Export-ModuleMember .\domainsettingsxxx.psm1 -Function Add-UsersToGroups
 
 Write-Log "Script gestart op $(Get-Date)"
