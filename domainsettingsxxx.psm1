@@ -207,6 +207,66 @@ function New-DirectoriesAndShares {
 # Aanroepen van de functie om directories en shares aan te maken
 New-DirectoriesAndShares
 
+# Functie voor het toekennen van share- en NTFS-rechten
+function Set-ShareAndNTFSRights {
+    $Rights = Import-Csv .\rechten.csv
+
+    foreach ($Right in $Rights) {
+        $ObjectType = $Right.ObjectType
+        $ObjectName = $Right.ObjectName
+        $SecurityGroup = $Right.SecurityGroup
+        $Permission = $Right.Permission
+
+        # Controleren of de security group bestaat
+        $groupExists = Get-ADGroup -Filter "Name -eq '$SecurityGroup'" -ErrorAction SilentlyContinue
+
+        if ($null -eq $groupExists) {
+            Write-Host "Security group $SecurityGroup bestaat niet."
+            Add-Content -Path "log.txt" -Value "Error: Security group $SecurityGroup bestaat niet."
+            continue
+        }
+
+        if ($ObjectType -eq "Share") {
+            # Controleren of de share bestaat
+            $shareExists = Get-SmbShare -Name $ObjectName -ErrorAction SilentlyContinue
+
+            if ($null -eq $shareExists) {
+                Write-Host "Share $ObjectName bestaat niet."
+                Add-Content -Path "log.txt" -Value "Error: Share $ObjectName bestaat niet."
+                continue
+            }
+
+            # Share rechten toekennen
+            Grant-SmbShareAccess -Name $ObjectName -AccountName $SecurityGroup -AccessRight $Permission -Force
+            Add-Content -Path "log.txt" -Value "Rechten $Permission toegekend aan $SecurityGroup op share $ObjectName."
+            Write-Host "Rechten $Permission toegekend aan $SecurityGroup op share $ObjectName."
+        }
+        elseif ($ObjectType -eq "Folder") {
+            # Controleren of de map bestaat
+            if (-Not (Test-Path -Path $ObjectName)) {
+                Write-Host "Map $ObjectName bestaat niet."
+                Add-Content -Path "log.txt" -Value "Error: Map $ObjectName bestaat niet."
+                continue
+            }
+
+            # NTFS rechten toekennen
+            $acl = Get-Acl -Path $ObjectName
+            $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($SecurityGroup, $Permission, "ContainerInherit,ObjectInherit", "None", "Allow")
+            $acl.SetAccessRule($accessRule)
+            Set-Acl -Path $ObjectName -AclObject $acl
+            Add-Content -Path "log.txt" -Value "Rechten $Permission toegekend aan $SecurityGroup op map $ObjectName."
+            Write-Host "Rechten $Permission toegekend aan $SecurityGroup op map $ObjectName."
+        }
+        else {
+            Write-Host "Onbekend ObjectType $ObjectType voor $ObjectName."
+            Add-Content -Path "log.txt" -Value "Error: Onbekend ObjectType $ObjectType voor $ObjectName."
+        }
+    }
+}
+
+# Aanroepen van de functie om share- en NTFS-rechten toe te kennen
+Set-ShareAndNTFSRights
+
 
 # Functie om wijzigingen te loggen
 function Write-Log {
@@ -225,7 +285,8 @@ Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-OUs
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-SecurityGroups
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-DomainUsers
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function Add-UsersToGroups
-Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-Folders
-Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-Shares
+Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-DirectoriesAndShares
+Export-ModuleMember .\domainsettingsxxx.psm1 -Function Set-ShareAndNTFSRights
+
 
 Write-Log "Script gestart op $(Get-Date)"
