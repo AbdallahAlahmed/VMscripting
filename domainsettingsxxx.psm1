@@ -94,6 +94,47 @@ function New-SecurityGroups {
 # Aanroepen van de functie om beveiligingsgroepen aan te maken
 New-SecurityGroups
 
+# Functie voor het aanmaken van domeingebruikers
+function New-DomainUsers {
+    $Users = Import-Csv .\users.csv
+
+    foreach ($User in $Users) {
+        $UserName = $User.UserName
+        $Password = ConvertTo-SecureString $User.Password -AsPlainText -Force
+        $FirstName = $User.FirstName
+        $LastName = $User.LastName
+        $OU = $User.OU
+        $HomeDirectory = "C:\userhomes\$UserName"
+        $ProfilePath = "C:\userprofiles\$UserName"
+
+        # Controleren of de OU al bestaat, zo niet, maak de OU aan
+        New-OUs -OUName $OU
+
+        # Controleren of de gebruiker al bestaat
+        $userExists = Get-ADUser -Filter "SamAccountName -eq '$UserName'" -ErrorAction SilentlyContinue
+
+        if ($null -eq $userExists) {
+            # Gebruiker bestaat niet, maak de gebruiker aan
+            New-ADUser -Name "$FirstName $LastName" -GivenName $FirstName -Surname $LastName -SamAccountName $UserName `
+                -UserPrincipalName "$UserName@domain.com" -Path "OU=$OU,DC=domain,DC=com" `
+                -AccountPassword $Password -HomeDirectory $HomeDirectory -HomeDrive "H:" -ProfilePath $ProfilePath -Enabled $true
+            Add-Content -Path "log.txt" -Value "Gebruiker $UserName is succesvol aangemaakt in de OU $OU."
+
+            # Aanmaken van home directory en roaming profile directory
+            New-Item -ItemType Directory -Path $HomeDirectory -Force
+            New-Item -ItemType Directory -Path $ProfilePath -Force
+            Add-Content -Path "log.txt" -Value "Home directory en roaming profile voor gebruiker $UserName zijn aangemaakt."
+        }
+        else {
+            Write-Host "Gebruiker $UserName bestaat al."
+        }
+    }
+}
+
+# Aanroepen van de functie om domeingebruikers aan te maken
+New-DomainUsers
+
+
 # Functie om wijzigingen te loggen
 function Write-Log {
     param(
