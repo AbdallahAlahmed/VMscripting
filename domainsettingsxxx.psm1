@@ -170,6 +170,43 @@ function Add-UsersToGroups {
 # Aanroepen van de functie om gebruikers aan beveiligingsgroepen toe te voegen
 Add-UsersToGroups
 
+# Functie voor het aanmaken van directories en shares
+function New-DirectoriesAndShares {
+    $Shares = Import-Csv .\share.csv
+
+    foreach ($Share in $Shares) {
+        $SharePath = $Share.Directory
+        $ShareName = $Share.ShareName
+
+        # Controleren of de directory bestaat, anders aanmaken
+        if (-Not (Test-Path -Path $SharePath)) {
+            New-Item -ItemType Directory -Path $SharePath -Force
+            Add-Content -Path "log.txt" -Value "Directory $SharePath is succesvol aangemaakt."
+            Write-Host "Directory $SharePath is succesvol aangemaakt."
+        }
+        else {
+            Add-Content -Path "log.txt" -Value "Directory $SharePath bestaat al."
+            Write-Host "Directory $SharePath bestaat al."
+        }
+
+        # Controleren of de share al bestaat
+        $shareExists = Get-SmbShare -Name $ShareName -ErrorAction SilentlyContinue
+
+        if ($null -eq $shareExists) {
+            New-SmbShare -Name $ShareName -Path $SharePath -FullAccess "Everyone"
+            Add-Content -Path "log.txt" -Value "Share $ShareName op $SharePath is succesvol aangemaakt."
+            Write-Host "Share $ShareName op $SharePath is succesvol aangemaakt."
+        }
+        else {
+            Add-Content -Path "log.txt" -Value "Share $ShareName bestaat al."
+            Write-Host "Share $ShareName bestaat al."
+        }
+    }
+}
+
+# Aanroepen van de functie om directories en shares aan te maken
+New-DirectoriesAndShares
+
 
 # Functie om wijzigingen te loggen
 function Write-Log {
@@ -188,5 +225,7 @@ Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-OUs
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-SecurityGroups
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-DomainUsers
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function Add-UsersToGroups
+Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-Folders
+Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-Shares
 
 Write-Log "Script gestart op $(Get-Date)"
