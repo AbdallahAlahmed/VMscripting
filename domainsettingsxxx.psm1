@@ -59,6 +59,41 @@ function New-OUs {
 }
 # Aanmaken van OUs
 Create-OUs
+
+
+# Functie voor het aanmaken van beveiligingsgroepen
+function New-SecurityGroups {
+    $Groups = Import-Csv .\groups.csv
+
+    foreach ($Group in $Groups) {
+        $GroupName = $Group.Name
+        $GroupType = $Group.Type
+        $OU = $Group.OU
+
+        # Controleren of de OU al bestaat, zo niet, maak de OU aan
+        New-OUs -OUName $OU
+
+        # Controleren of de groep al bestaat
+        $groupExists = Get-ADGroup -Filter "Name -eq '$GroupName'" -ErrorAction SilentlyContinue
+
+        if ($null -eq $groupExists) {
+            if ($GroupType -eq "DL") {
+                New-ADGroup -Name $GroupName -GroupScope DomainLocal -Path "OU=$OU,DC=domain,DC=com"
+            }
+            elseif ($GroupType -eq "GL") {
+                New-ADGroup -Name $GroupName -GroupScope Global -Path "OU=$OU,DC=domain,DC=com"
+            }
+            Add-Content -Path "log.txt" -Value "Groep $GroupName is succesvol aangemaakt in de OU $OU."
+        }
+        else {
+            Write-Host "Groep $GroupName bestaat al."
+        }
+    }
+}
+
+# Aanroepen van de functie om beveiligingsgroepen aan te maken
+New-SecurityGroups
+
 # Functie om wijzigingen te loggen
 function Write-Log {
     param(
@@ -71,5 +106,8 @@ function Write-Log {
 
 Export-ModuleMember .\domainsettingsxxx.psm1 -Function Install-DomainController
 
-Export-ModuleMember .\domainsettingsxxx.psm -Function New-OUs
+Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-OUs
+
+Export-ModuleMember .\domainsettingsxxx.psm1 -Function New-SecurityGroups
+
 Write-Log "Script gestart op $(Get-Date)"
