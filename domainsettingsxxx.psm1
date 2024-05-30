@@ -58,7 +58,7 @@ function New-OUs {
     }
 }
 # Aanmaken van OUs
-Create-OUs
+New-OUs
 
 
 # Functie voor het aanmaken van beveiligingsgroepen
