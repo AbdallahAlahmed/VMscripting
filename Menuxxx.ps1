@@ -9,46 +9,89 @@ Import-Module Z:\scripting\domainsettingsxxx.psm1
 # Laden van de module voor het bijhouden van de wijzigingen
 Import-Module Z:\scripting\logmodule.psm1
 
-# Functie om de basisconfiguratie voor Windows Server 2022 uit te voeren
-<#
-.SYNOPSIS
-Voert de basisconfiguratie uit voor Windows Server 2022, inclusief het instellen van servernaam, IP-adressen, default gateway en DNS.
-#>
-function Invoke-BasisconfiguratieWindowsServer2022 {
-    # Implementeer de functionaliteit voor basisconfiguratie van Windows Server 2022
-}
+# Auteur: Abdallah Alahmed
 
-# Functie om de basisconfiguratie voor Windows 10 Pro/Education uit te voeren
-<#
-.SYNOPSIS
-Voert de basisconfiguratie uit voor Windows 10 Pro/Education, inclusief het instellen van computernaam, IP-adressen, default gateway en DNS.
-#>
-function Invoke-BasisconfiguratieWindows10 {
-    # Implementeer de functionaliteit voor basisconfiguratie van Windows 10 Pro/Education
-}
+# Importeren van de modules
+Import-Module -Name .\domainsettingsxxx.psm1
 
-# Functie voor het tonen van het menu
+# Functie om het menu te tonen
 function Show-Menu {
-    Write-Host "===== Welkom bij het configuratiemenu ====="
-    Write-Host "1. Basisconfiguratie Windows Server 2022"
-    Write-Host "2. Basisconfiguratie Windows 10 Pro/Education"
-    $choice = Read-Host "Maak een keuze (1/2):"
+    Clear-Host
+    Write-Host "======================="
+    Write-Host " Server Configuratie Menu "
+    Write-Host "======================="
+    Write-Host "1. Basisconfiguratie van Windows device"
+    Write-Host "2. Domeincontroller installeren"
+    Write-Host "3. OUs aanmaken"
+    Write-Host "4. Beveiligingsgroepen aanmaken"
+    Write-Host "5. Domeingebruikers aanmaken"
+    Write-Host "6. Gebruikers toevoegen aan beveiligingsgroepen"
+    Write-Host "7. Directories en shares aanmaken"
+    Write-Host "8. Share en NTFS-rechten toekennen"
+    Write-Host "9. Exit"
+}
+
+# Functie om de keuze van de gebruiker te verwerken
+function show-Menu {
+    param (
+        [int]$choice
+    )
 
     switch ($choice) {
-        '1' {
-            Invoke-BasisconfiguratieWindowsServer2022
+        1 {
+            Write-Host "Basisconfiguratie van Windows device wordt uitgevoerd..."
+            Set-Basisconfiguratie
+            Pause
         }
-        '2' {
-            Invoke-BasisconfiguratieWindows10
+        2 {
+            Write-Host "Domeincontroller installeren..."
+            Install-DomainController
+            Pause
+        }
+        3 {
+            Write-Host "OUs aanmaken..."
+            New-OUs
+            Pause
+        }
+        4 {
+            Write-Host "Beveiligingsgroepen aanmaken..."
+            New-SecurityGroups
+            Pause
+        }
+        5 {
+            Write-Host "Domeingebruikers aanmaken..."
+            New-DomainUsers
+            Pause
+        }
+        6 {
+            Write-Host "Gebruikers toevoegen aan beveiligingsgroepen..."
+            Add-UsersToGroups
+            Pause
+        }
+        7 {
+            Write-Host "Directories en shares aanmaken..."
+            New-DirectoriesAndShares
+            Pause
+        }
+        8 {
+            Write-Host "Share en NTFS-rechten toekennen..."
+            Set-ShareAndNTFSRights
+            Pause
+        }
+        9 {
+            Write-Host "Exiting..."
+            Exit
         }
         default {
-            Write-Host "Ongeldige keuze. Probeer opnieuw."
-            Show-Menu
+            Write-Host "Ongeldige keuze, probeer opnieuw."
+            Pause
         }
     }
 }
 
-# Main script
-
-# Toon het menu
-Show-Menu
+# Main loop
+do {
+    Show-Menu
+    $choice = Read-Host "Voer uw keuze in"
+    Process-Menu -choice $choice
+} while ($choice -ne 9)
