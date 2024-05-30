@@ -40,7 +40,7 @@ Install-DomainController
 
 # Functie voor het aanmaken van OUs
 function New-OUs {
-    $OUs = Get-Content .\ou.txt
+    $OUs = Get-Content .\ous.csv
 
     foreach ($OU in $OUs) {
         # Controleren of de OU al bestaat
